@@ -1,0 +1,124 @@
+ <html>
+ <head>
+   <style type="text/css">
+     .imgclass {
+      max-width: 10rem;
+      border: solid black 1px;
+     }
+     .text-center
+     {
+      text-align: center;
+      display: flex;
+      justify-content: center;
+     }
+   </style>
+ </head>
+ <body>
+ <table><tbody>
+   <tr>
+    <td>
+      <img id="page-0" src="./page-0.jpg" class="imgclass"> <br> <span class="text-center">page-0.jpg</span>
+    </td>
+    <td>
+      <img id="page-1" src="./page-1.jpg" class="imgclass"> <br> <span class="text-center">page-1.jpg</span>
+    </td>
+    <td>
+      <img id="page-2" src="./page-2.jpg" class="imgclass"> <br> <span class="text-center">page-2.jpg</span>
+    </td>
+    <td>
+      <img id="page-3" src="./page-3.jpg" class="imgclass"> <br> <span class="text-center">page-3.jpg</span>
+    </td>
+   </tr>
+ </tbody></table>
+ <br>
+ <button onclick="extractPDF();"> Download Extract</button>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
+ <script>
+ function extractPDF() {
+        //init doc var to null
+        let doc = null; 
+        //define wich page have which orientation
+        let fileorientation = [0, 90, 180, 270]; 
+        //Function to return 'l' or 'p' relative to the library to indicate if the page is in landscape mode or while added with the "addPage" function
+        let isLandscape = indexpage => {
+          return fileorientation[indexpage] == 90 ||
+            fileorientation[indexpage] == 270
+            ? "l"
+            : "p";
+        };
+
+        //init widht and height to 0
+        let width = 0;
+        let height = 0;
+        //for each page of the html document above
+        for (var indexpage = 0; indexpage < 4; indexpage++) {
+          //get the img into the HTML code
+          let element = document.querySelector("#page-" + indexpage);
+          //call the function above to check if the page is vertical or horizontal (landscape)
+          let orientation = isLandscape(indexpage);
+          //if its first page we need create the document else to add a page to the document
+          if (indexpage == 0) {
+            doc = new jsPDF({
+              orientation: orientation
+            });
+          } else {
+            doc.addPage(null, orientation);
+          }
+          console.log('orientation'  + orientation);
+          //get the current page width and page height of the document
+          width = doc.internal.pageSize.getWidth();
+          height = doc.internal.pageSize.getHeight();
+          //if the page is in portrait
+          if (orientation == "p") {
+            //if the page is on angle 0 then add the page without rotation
+            if (fileorientation[indexpage] == 0)
+              doc.addImage(element, "JPEG", 0, 0, width, height);
+            //if the page is on angle 90 then add the page with rotation of 180 deg
+            else if (fileorientation[indexpage] == 180)
+              doc.addImage(
+                element,
+                "JPEG",
+                width,
+                -height,
+                width,
+                height,
+                null,
+                null,
+                -180
+              );
+            //if the page is in landscape mode
+          } else if (orientation == "l") {
+            //if the page is on angle 90 then add the page with rotation of 90 deg
+            if (fileorientation[indexpage] == 90)
+              doc.addImage(
+                element,
+                "JPEG",
+                0,
+                -width,
+                height,
+                width,
+                null,
+                null,
+                -90
+              );
+            //if the page is on angle 90 then add the page with rotation of 270 deg
+            else if (fileorientation[indexpage] == 270)
+              doc.addImage(
+                element,
+                "JPEG",
+                width,
+                -(width - height),
+                height,
+                width,
+                null,
+                null,
+                -270
+              );
+          }
+        }
+        //save the pdf
+        doc.save("result.pdf");
+    }
+</script>
+</html>
